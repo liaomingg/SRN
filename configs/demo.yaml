@@ -1,0 +1,62 @@
+name: srn-train
+
+gpu: '0,1,2,3'
+gpus_per_node: 0
+cudnn_benchmark: True 
+distributed: False
+world_size: 1
+rank: 0
+dist_url: 'tcp://12.3.12.43:12345'
+dist_backend: nccl
+multi_processing_distributed: False
+
+workers: 0
+start_epoch: 0
+epochs: 72
+warmup: 0
+display_freq: 10
+evaluate: True
+# optimizer
+lr: 0.0001
+momentum: 0.9
+weight_decay: 0.00001
+clip_norm: 10.0
+
+
+resume: 
+save_dir: ./saved_models
+
+backbone:
+
+head:
+  name: SRNHead
+  max_text_len: 25
+  num_heads: 8
+  num_encoders: 2
+  num_decoders: 4
+  hidden_dims: 512
+
+
+alphabet: 0123456789abcdefghijklmnopqrstuvwxyz
+
+model:
+  in_channels: 1
+  display: True
+
+
+dataset:
+  train:
+    enable: True
+    image_shape: [1, 64, 256]
+    path: /Users/liaoming/Downloads/SRN
+    shuffle: True
+    batch_size: 2
+  val:
+    enable: True
+    interval: 1 
+    image_shape: [1, 64, 256]
+    path: /Users/liaoming/Downloads/SRN
+    shuffle: False
+    batch_size: 1
+
+
