@@ -198,7 +198,7 @@ def main(args):
                 
         train(args, model, train_loader, criterion, optimizer, lr_scheduler, alphabet, epoch)
         
-        if args.dataset.val.enable and epoch % args.dataset.val.inverval == 0:
+        if args.dataset.val.enable and epoch % args.dataset.val.interval == 0:
             metric = val(args, model, val_loader, criterion, alphabet, epoch)
         
         if not args.multi_processing_distributed or (args.multi_processing_distributed and args.rank % args.gpus_per_node == 0):
@@ -210,7 +210,7 @@ def main(args):
                 'optimizer': optimizer,
                 'scheduler': lr_scheduler.state_dict()}
             save_checkpoint_srn(state, args, best_metric['acc'] <= metric['acc'])
-            if best_metric['acc'] <= metric:
+            if best_metric['acc'] <= metric['acc']:
                 best_metric = metric
                 
     print('Train complete!')
