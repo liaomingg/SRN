@@ -57,7 +57,6 @@ def sgd_optimizer(model:nn.Module, lr:float, momentum:float, weight_decay:float)
 def main(args):
     # check cpu or gpu!
     if not args.gpu and torch.cuda.is_available():
-        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu 
         args.gpu = [int(gpu) for gpu in args.gpu.split(',')]
         print('Using GPU: {} for training.'.format(args.gpu))
     else:
@@ -135,39 +134,36 @@ def main(args):
     if args.model.display:
         print('Model structure.')
         print(model)
-        
+
+
+    best_metric = {
+        'acc': 0.0,
+        'norm_edit_dist': 0.0}
     if args.resume:
         # maybe load checkpoint before move to cuda.
         if os.path.isfile(args.resume):
             print(' ===> resume parameters from: {}'.format(args.resume))
-            load_checkpoint(model, args.resume)
+            state = load_checkpoint(model, args.resume)
+            best_metric = state['metrics']
+            print('Load best metric:', best_metric)
         else:
             print(' xxx> no checkpoint found at: {}'.format(args.resume))
      
 
     # set GPU or CPU
-    if not torch.cuda.is_available():
+    if args.gpu is None or not torch.cuda.is_available():
         print('CUDA is unavailable!!! Using CPU training will be slow!!!')
           
     elif args.distributed:
-        if args.gpu:
-            torch.cuda.set_device(args.gpu)
-            model = model.cuda(args.gpu)   
-            args.batch_size = args.batch_size // args.gpus_per_node
-            args.workers = (args.workers + args.gpus_per_node - 1) // args.gpus_per_node 
+            model = model.cuda()   
             model = torch.nn.parallel.DistributedDataParallel(model, 
-                                                              device_ids = args.gpu, 
                                                               find_unused_parameters=True)
             print('DistributedDataparallel training with selected GPUS: {}'.format(args.gpu))
-        else:
-            model.cuda()
-            model = torch.nn.parallel.DistributedDataParallel(model)
-            print('DistributedDataparallel training with all visible GPUS.')
             
-    elif args.gpu:
-        torch.cuda.set_device(args.gpu)
-        model = model.cuda(args.gpu)
+    elif len(args.gpu) <= 1:
+        model = model.cuda()
         print('Training model with single GPU: {}'.format(args.gpu))
+        
     else:
         model = torch.nn.DataParallel(model).cuda()
         print('Training model with Data Parallel.')
@@ -187,10 +183,6 @@ def main(args):
     if args.cudnn_benchmark:
         cudnn.benchmark = True 
 
-    # load best metric from pretrained model.
-    best_metric = {
-        'acc': 0.0,
-        'norm_edit_dist': 0.0}
     
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed and train_sampler:
@@ -350,6 +342,7 @@ if __name__ == "__main__":
     args = argparser.parse_args()
     print(args)
     args = edict(yaml.load(open(args.config), Loader=yaml.FullLoader))
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu 
     print(json.dumps(args, indent=2))
     main(args)
     

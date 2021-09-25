@@ -58,6 +58,7 @@ class ProgressMeter(object):
 def load_checkpoint(model, ckpt_path):
     # load to cpu, may trained on other gpu id.
     checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)
+    state = checkpoint 
     if 'model' in checkpoint:
         checkpoint = checkpoint['model']
     if 'state_dict' in checkpoint:
@@ -69,12 +70,13 @@ def load_checkpoint(model, ckpt_path):
         else:
             ckpt[k] = v
     model.load_state_dict(ckpt)
-
+    return state 
 
 
 def save_checkpoint(state, ckpt_path, is_best=False, best_ckpt_path=None):
     torch.save(state, ckpt_path)
     if is_best and best_ckpt_path:
+        print(' ---> find best model: {}'.format(best_ckpt_path))
         shutil.copyfile(ckpt_path, best_ckpt_path)
     
 
