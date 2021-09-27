@@ -42,5 +42,5 @@ class RecMetric(object):
         self.total_num += total_num
         self.norm_edit_dist += norm_edit_dist
         return {'acc': correct_num / total_num,
-                'norm_edit_dist': 1 - norm_edit_dist / self.total_num}
+                'norm_edit_dist': 1 - norm_edit_dist / total_num}
             
