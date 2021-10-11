@@ -32,8 +32,7 @@ from scripts.utils import (AverageMeter, ProgressMeter, load_checkpoint,
                            save_checkpoint)
 from srn import SRN
 
-os.environ['MASTER_ADDR'] = 'localhost'
-os.environ['MASTER_PORT'] = '12345'
+
 
 def sgd_optimizer(model:nn.Module, lr:float, momentum:float, weight_decay:float):
     params = []
@@ -56,7 +55,7 @@ def sgd_optimizer(model:nn.Module, lr:float, momentum:float, weight_decay:float)
 
 def main(args):
     # check cpu or gpu!
-    if not args.gpu and torch.cuda.is_available():
+    if args.gpu is not None and torch.cuda.is_available():
         args.gpu = [int(gpu) for gpu in args.gpu.split(',')]
         print('Using GPU: {} for training.'.format(args.gpu))
     else:
@@ -343,6 +342,8 @@ if __name__ == "__main__":
     print(args)
     args = edict(yaml.load(open(args.config), Loader=yaml.FullLoader))
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu 
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12345'
     print(json.dumps(args, indent=2))
     main(args)
     
