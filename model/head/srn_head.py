@@ -73,7 +73,7 @@ class PVAM(nn.Module):
         word_pos_feature = self.emb(gsrm_word_pos)
         word_pos_feature_ = word_pos_feature.reshape([-1, self.max_len, 1, c])
         word_pos_feature_ = torch.tensor(np.tile(word_pos_feature_.detach().numpy(), [1, 1, t, 1]),
-                                         device = word_pos_feature_.device)
+                                         device = word_features_.device)
         
         y = word_pos_feature_ + word_features_
         y = F.tanh(y)
@@ -129,11 +129,11 @@ class GSRM(nn.Module):
             prepost_dropout=0.1,
             attn_dropout=0.1,
             relu_dropout=0.1)
-        
+        ''' 
         self.mul = lambda x : torch.matmul(
             x,
             torch.transpose(self.wrap_encoder0.prepare_decoder.emb0.weight, -1, -2))
-        
+        '''
         
     def forward(self, 
                 pvam_features : torch.Tensor, 
@@ -175,7 +175,11 @@ class GSRM(nn.Module):
         gsrm_features = gsrm_features1 + gsrm_features2
         
         # print("emb0.weight.size(): {}".format(self.wrap_encoder0.prepare_decoder.emb0.weight.size()))
-        gsrm_out = self.mul(gsrm_features)
+        gsrm_out = torch.matmul(
+            gsrm_features,
+            torch.transpose(self.wrap_encoder0.prepare_decoder.emb0.weight, -1, 2))
+        
+        # gsrm_out = self.mul(gsrm_features)
         
         b, t, c = gsrm_out.shape 
         gsrm_out = gsrm_out.reshape([-1, c])
