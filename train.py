@@ -299,7 +299,7 @@ def val(args: edict, model: nn.Module, data_loader: DataLoader, criterion:SRNLos
                     if isinstance(v, torch.Tensor):
                         data[k] = v.cuda()
             preds = model(data['image'], data, data['label'])
-            losses = criterion(preds, losses['label'])
+            losses = criterion(preds, data['label'])
             # should be decode first.
             
             batch_indexs = torch.argmax(preds['predict'], dim=-1).reshape(-1, alphabet.max_len)
